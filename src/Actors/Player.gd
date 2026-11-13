@@ -29,6 +29,23 @@ signal at_max_hp
 
 var ride : Node2D
 
+# --- Zero (selectable character) ---
+const ZSaber = preload("res://src/Actors/Player/Zero/ZSaber.gd")
+# Placeholder palette: X's blue armor slots recolored red, light-blue slots gold.
+# Order matches MainColor1..6 in Player_Material_Shader.tres.
+const ZERO_COLORS = [
+	Color(0.909804, 0.188235, 0.188235, 1), # main armor
+	Color(0.752941, 0.0627451, 0.12549, 1), # main armor shade
+	Color(0.376471, 0.0313726, 0.0941176, 1), # dark shade
+	Color(1, 0.890196, 0.533333, 1),        # light trim (blond)
+	Color(0.968627, 0.737255, 0.25098, 1),  # trim
+	Color(0.752941, 0.470588, 0.12549, 1),  # trim shade
+]
+var is_zero := false
+
+func zero_selected() -> bool:
+	return Configurations.get("CHARACTER") == "ZERO"
+
 func deactivate():
 	stop_listening_to_inputs()
 	stop_charge()
@@ -103,6 +120,8 @@ func _ready() -> void:
 	
 	save_original_colors()
 	armor_sprites = get_armor_sprites()
+	if zero_selected():
+		become_zero()
 	GameManager.set_player(self)
 	Event.call_deferred("emit_signal","player_set")
 
@@ -226,7 +245,44 @@ func is_full_armor() -> String:
 		return "icarus"
 	return "no_armor"
 
+func become_zero() -> void:
+	is_zero = true
+	# Zero has no buster, charge shot, special weapons or weapon switching.
+	for ability_name in ["Shot", "Charge", "AltFire"]:
+		get_node(ability_name).deactivate()
+	$WeaponChanger.active = false
+	$WeaponChanger/HotSwap.active = false
+	$WeaponChanger/HotSwap.visible = false
+
+	# Walking can't start (and is stopped) while a grounded combo is running.
+	var walk = get_node("Walk")
+	walk.conflicting_moves = walk.conflicting_moves + ["ZSaber"]
+
+	add_saber("ZSaber", false, ["Death", "Damage", "Ride", "Forced", "WeaponStasis",
+			"Finish", "Intro", "Jump", "Dash", "WallSlide", "Fall"])
+	add_saber("SaberAir", true, ["Death", "Damage", "Ride", "Forced", "WeaponStasis",
+			"Finish", "Intro", "Nothing"])
+
+	set_new_colors_on_shader_parameters(animatedSprite, ZERO_COLORS)
+
+func add_saber(ability_name: String, aerial: bool, conflicts: Array) -> void:
+	var saber = ZSaber.new()
+	saber.name = ability_name
+	saber.aerial = aerial
+	saber.actions = ["fire"]
+	saber.conflicting_moves = conflicts
+	var audio := AudioStreamPlayer.new()
+	audio.name = "audioStreamPlayer"
+	audio.volume_db = -6.0
+	audio.bus = "SFX"
+	saber.add_child(audio)
+	add_child(saber)
+	moveset.append(saber)
+	saber.connect("ability_end", self, "ability_ended")
+
 func equip_parts(collectible : String):
+	if is_zero and is_armor_part(collectible):
+		return # X's armor parts don't fit Zero; they stay saved for X.
 	if is_armor_part(collectible):
 		add_part_to_current_armor(collectible)
 		call("equip_" + collectible + "_parts")
@@ -310,6 +366,8 @@ func save_original_colors():
 	colors.append(animatedSprite.material.get_shader_param("MainColor6"))
 
 func change_palette(new_colors, paint_armor := true):
+	if is_zero:
+		return # weapon palettes are X-only
 	if not animatedSprite:
 		animatedSprite = get_node("animatedSprite")
 	set_new_colors_on_shader_parameters(animatedSprite,new_colors)

@@ -68,6 +68,9 @@ LANGUAGE_OPTION,Language,Idioma,Idioma,Idioma
 SKIP_DIAG_OPTION,Skippable Dialogs,Diálogos Puláveis,Diálogos Omitibles,Não gosto de ler
 CRT_OPTION,CRT Filter,Filtro CRT,Filtro CRT,TV de Tubo
 SMOOTH_OPTION,Smooth Colors,Cores Suaves,Colores Suaves,Cores Lisinhas
+CHARACTER_OPTION,Character,Personagem,Personaje,Personagem
+X_VALUE,X,X,X,X
+ZERO_VALUE,Zero,Zero,Zero,Zero
 LIGHT_VALUE,Light,Leve,Tenue,Levin
 STRONG_VALUE,Strong,Forte,Fuerte,Brabo
 ACHIEV_OPTION,Show Achievements,Mostrar Conquistas,Mostrar Logros,Isso não é RA carai

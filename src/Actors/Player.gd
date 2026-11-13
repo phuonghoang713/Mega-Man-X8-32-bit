@@ -31,7 +31,9 @@ var ride : Node2D
 
 # --- Zero (selectable character) ---
 const ZSaber = preload("res://src/Actors/Player/Zero/ZSaber.gd")
-# Placeholder palette: X's blue armor slots recolored red, light-blue slots gold.
+const ZeroSprites = preload("res://src/Actors/Player/Zero/ZeroSprites.gd")
+# Placeholder palette, used only while no custom Zero sprites are present:
+# X's blue armor slots recolored red, light-blue slots gold.
 # Order matches MainColor1..6 in Player_Material_Shader.tres.
 const ZERO_COLORS = [
 	Color(0.909804, 0.188235, 0.188235, 1), # main armor
@@ -42,6 +44,8 @@ const ZERO_COLORS = [
 	Color(0.752941, 0.470588, 0.12549, 1),  # trim shade
 ]
 var is_zero := false
+var zero_custom_sprites := false # true when zero_sprites/zero.json was loaded
+var zero_config: ConfigFile = ConfigFile.new() # zero_sprites/zero.cfg (optional)
 
 func zero_selected() -> bool:
 	return Configurations.get("CHARACTER") == "ZERO"
@@ -263,7 +267,22 @@ func become_zero() -> void:
 	add_saber("SaberAir", true, ["Death", "Damage", "Ride", "Forced", "WeaponStasis",
 			"Finish", "Intro", "Nothing"])
 
-	set_new_colors_on_shader_parameters(animatedSprite, ZERO_COLORS)
+	zero_config = ZeroSprites.load_config()
+	if not apply_zero_sprites(ZeroSprites.build(animatedSprite.frames)):
+		set_new_colors_on_shader_parameters(animatedSprite, ZERO_COLORS)
+
+# Swaps in Zero's own SpriteFrames (built by ZeroSprites from zero_sprites/).
+# Returns false when there are none, so the placeholder recolor is used.
+func apply_zero_sprites(custom: Dictionary) -> bool:
+	if custom.empty():
+		return false
+	animatedSprite.frames = custom.frames
+	animatedSprite.offset = custom.offset
+	animatedSprite.play("idle")
+	for part in armor_sprites:
+		part.visible = false # X's armor overlays don't match Zero's frames
+	zero_custom_sprites = true
+	return true
 
 func add_saber(ability_name: String, aerial: bool, conflicts: Array) -> void:
 	var saber = ZSaber.new()

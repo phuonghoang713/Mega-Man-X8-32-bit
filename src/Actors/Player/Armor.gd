@@ -138,6 +138,8 @@ func synchronize_part_animations(character_animation :String)-> void:
 			play_animation_on_part(part, anim_to_play)
 
 func play_animation_on_part(part, anim_to_play):
+	if not part.frames or not part.frames.has_animation(anim_to_play):
+		return # e.g. Zero's own animations: the armor overlays only cover X's
 	if get_animation(part) != anim_to_play:
 		part.play(anim_to_play)
 	if playerSprite.frame != part.frame:

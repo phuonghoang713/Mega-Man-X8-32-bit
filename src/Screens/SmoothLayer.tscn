@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://src/Screens/smooth_upscale.shader" type="Shader" id=1]
+
+[sub_resource type="ShaderMaterial" id=1]
+shader = ExtResource( 1 )
+shader_param/resolution = Vector2( 398, 224 )
+shader_param/strength = 1.0
+shader_param/edge_softness = 2.0
+shader_param/equal_threshold = 0.06
+shader_param/corner_coverage = 0.25
+shader_param/shade_blend = 0.7
+shader_param/shade_threshold = 0.12
+
+[node name="SmoothLayer" type="CanvasLayer"]
+layer = 0
+
+[node name="Smooth" type="ColorRect" parent="."]
+material = SubResource( 1 )
+margin_right = 398.0
+margin_bottom = 224.0
+mouse_filter = 2

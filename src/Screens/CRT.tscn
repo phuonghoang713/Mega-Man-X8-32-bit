@@ -23,6 +23,9 @@ shader_param/pixel_strength = -2.27
 [node name="CRT" type="CanvasLayer"]
 layer = 125
 
+[node name="BackBufferCopy" type="BackBufferCopy" parent="."]
+copy_mode = 2
+
 [node name="Strong" type="ColorRect" parent="."]
 visible = false
 modulate = Color( 0.839216, 0.839216, 0.839216, 1 )

@@ -49,11 +49,11 @@ func show_boss_attack(boss_name,attack_order):
 	show_rng()
 	rec_info.text += " " + boss_name + ": " + attack_order
 
-const ZERO_BAR = preload("res://src/HUD/Zero_bar.png")
+const ZENO_BAR = preload("res://src/HUD/Zeno_bar.png")
 
 func _ready() -> void:
-	if Configurations.get("CHARACTER") == "ZERO":
-		player_bar.texture = ZERO_BAR
+	if Configurations.get("CHARACTER") == "ZENO":
+		player_bar.texture = ZENO_BAR
 	Tools.timer(0.1,"show_rng",self)
 	black_screen.visible = true
 	white_screen.visible = false

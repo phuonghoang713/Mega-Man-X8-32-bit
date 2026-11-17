@@ -3,7 +3,7 @@ extends Sprite
 # A fading, single-color copy of the player's current animation frame, left
 # behind in world space during fast saber moves.
 
-const SILHOUETTE = preload("res://src/Actors/Player/Zero/afterimage.shader")
+const SILHOUETTE = preload("res://src/Actors/Player/Zeno/afterimage.shader")
 
 var lifetime := 0.2
 var start_alpha := 0.55

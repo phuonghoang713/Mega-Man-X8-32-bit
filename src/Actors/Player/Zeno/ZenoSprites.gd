@@ -1,19 +1,19 @@
 extends Reference
 
-# Loads Zero's sprites from an Aseprite sprite-sheet export, if one is present:
-#   res://src/Actors/Player/zero_sprites/zero.json  (Aseprite JSON, Hash or Array)
-#   res://src/Actors/Player/zero_sprites/zero.png   (the sheet the JSON points to)
+# Loads Zeno's sprites from an Aseprite sprite-sheet export, if one is present:
+#   res://src/Actors/Player/zeno_sprites/zeno.json  (Aseprite JSON, Hash or Array)
+#   res://src/Actors/Player/zeno_sprites/zeno.png   (the sheet the JSON points to)
 # Each Aseprite frame tag becomes an animation with the same name. Animations
 # the game plays but the sheet lacks are filled from the closest drawn one, so
-# Zero never turns invisible; they are listed in the log so you know what to
-# draw next. See zero_sprites/README.md for the expected names.
+# Zeno never turns invisible; they are listed in the log so you know what to
+# draw next. See zeno_sprites/README.md for the expected names.
 
-const FOLDER := "res://src/Actors/Player/zero_sprites/"
-const DATA_FILE := "zero.json"
-const SHEET_FILE := "zero.png"
-const CONFIG_FILE := "zero.cfg"
+const FOLDER := "res://src/Actors/Player/zeno_sprites/"
+const DATA_FILE := "zeno.json"
+const SHEET_FILE := "zeno.png"
+const CONFIG_FILE := "zeno.cfg"
 
-# Zero-only animations used by the saber (ZSaber.gd). Optional.
+# Zeno-only animations used by the saber (ZSaber.gd). Optional.
 const SABER_ANIMATIONS := ["saber_1", "saber_2", "saber_3", "saber_air", "saber_dash"]
 
 # What to show for a missing animation, tried in order before "idle".
@@ -29,7 +29,7 @@ const FALLBACKS := {
 
 # Returns {} when no custom sprites exist. Otherwise:
 #   frames:  SpriteFrames with every animation `reference` has
-#   offset:  sprite offset that puts Zero's feet where X's are
+#   offset:  sprite offset that puts Zeno's feet where X's are
 #   missing: animation names that were filled with a fallback
 static func build(reference: SpriteFrames, folder := FOLDER) -> Dictionary:
 	var file := File.new()
@@ -37,12 +37,12 @@ static func build(reference: SpriteFrames, folder := FOLDER) -> Dictionary:
 	if not file.file_exists(data_path):
 		return {}
 	if file.open(data_path, File.READ) != OK:
-		push_error("Zero sprites: cannot open " + data_path)
+		push_error("Zeno sprites: cannot open " + data_path)
 		return {}
 	var parsed := JSON.parse(file.get_as_text())
 	file.close()
 	if parsed.error != OK or not parsed.result is Dictionary:
-		push_error("Zero sprites: %s line %d: %s" % [data_path, parsed.error_line, parsed.error_string])
+		push_error("Zeno sprites: %s line %d: %s" % [data_path, parsed.error_line, parsed.error_string])
 		return {}
 	var data: Dictionary = parsed.result
 
@@ -52,7 +52,7 @@ static func build(reference: SpriteFrames, folder := FOLDER) -> Dictionary:
 		sheet_name = String(meta.image).get_file()
 	var sheet := load_sheet(folder.plus_file(sheet_name))
 	if not sheet:
-		push_error("Zero sprites: cannot load sheet " + folder.plus_file(sheet_name))
+		push_error("Zeno sprites: cannot load sheet " + folder.plus_file(sheet_name))
 		return {}
 
 	var frame_list := []
@@ -63,7 +63,7 @@ static func build(reference: SpriteFrames, folder := FOLDER) -> Dictionary:
 		for key in raw_frames:
 			frame_list.append(raw_frames[key])
 	if frame_list.empty():
-		push_error("Zero sprites: no frames in " + data_path)
+		push_error("Zeno sprites: no frames in " + data_path)
 		return {}
 
 	var textures := []
@@ -111,7 +111,7 @@ static func build(reference: SpriteFrames, folder := FOLDER) -> Dictionary:
 	var drawn := Array(frames.get_animation_names())
 	drawn.erase("default")
 	if drawn.empty():
-		push_error("Zero sprites: no usable animations in " + data_path)
+		push_error("Zeno sprites: no usable animations in " + data_path)
 		return {}
 	if frames.has_animation("default") and frames.get_frame_count("default") == 0:
 		frames.remove_animation("default")
@@ -128,15 +128,15 @@ static func build(reference: SpriteFrames, folder := FOLDER) -> Dictionary:
 		frames.set_animation_loop(anim_name, reference.get_animation_loop(anim_name))
 		missing.append(anim_name)
 
-	# Put Zero's feet where X's are. Both sprites are centered, so compare how
+	# Put Zeno's feet where X's are. Both sprites are centered, so compare how
 	# far below the frame center the lowest solid pixel of "idle" sits.
 	var offset := Vector2.ZERO
-	var zero_feet := feet_below_center(frames.get_frame("idle", 0)) if frames.has_animation("idle") else NAN
+	var zeno_feet := feet_below_center(frames.get_frame("idle", 0)) if frames.has_animation("idle") else NAN
 	var x_feet := NAN
 	if reference.has_animation("idle") and reference.get_frame_count("idle") > 0:
 		x_feet = feet_below_center(reference.get_frame("idle", 0))
-	if not is_nan(zero_feet) and not is_nan(x_feet):
-		offset.y = round(x_feet - zero_feet)
+	if not is_nan(zeno_feet) and not is_nan(x_feet):
+		offset.y = round(x_feet - zeno_feet)
 	var config := load_config(folder)
 	offset += config.get_value("sprite", "offset", Vector2.ZERO)
 
@@ -144,11 +144,11 @@ static func build(reference: SpriteFrames, folder := FOLDER) -> Dictionary:
 	for anim_name in SABER_ANIMATIONS:
 		if not frames.has_animation(anim_name):
 			missing_saber.append(anim_name)
-	print("Zero sprites: loaded %d animations from %s (canvas %dx%d)." % [drawn.size(), data_path, canvas.x, canvas.y])
+	print("Zeno sprites: loaded %d animations from %s (canvas %dx%d)." % [drawn.size(), data_path, canvas.x, canvas.y])
 	if not missing.empty():
-		print("Zero sprites: not drawn yet, using a stand-in: " + PoolStringArray(missing).join(", "))
+		print("Zeno sprites: not drawn yet, using a stand-in: " + PoolStringArray(missing).join(", "))
 	if not missing_saber.empty():
-		print("Zero sprites: optional saber animations not drawn: " + PoolStringArray(missing_saber).join(", "))
+		print("Zeno sprites: optional saber animations not drawn: " + PoolStringArray(missing_saber).join(", "))
 
 	return {"frames": frames, "offset": offset, "missing": missing}
 
@@ -156,7 +156,7 @@ static func load_config(folder := FOLDER) -> ConfigFile:
 	var config := ConfigFile.new()
 	var path: String = folder.plus_file(CONFIG_FILE)
 	if File.new().file_exists(path) and config.load(path) != OK:
-		push_error("Zero sprites: cannot parse " + path)
+		push_error("Zeno sprites: cannot parse " + path)
 	return config
 
 static func load_sheet(path: String) -> Texture:

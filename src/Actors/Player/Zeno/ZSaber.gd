@@ -1,8 +1,8 @@
 extends Movement
 
-# Zero's Z-Saber. Player.gd adds two instances of this ability when Zero is the
+# Zeno's Z-Saber. Player.gd adds two instances of this ability when Zeno is the
 # selected character:
-#   "ZSaber"   (aerial = false): 3-hit grounded combo. Roots Zero in place;
+#   "ZSaber"   (aerial = false): 3-hit grounded combo. Roots Zeno in place;
 #                                 jump, dash or taking damage cancels it.
 #   "SaberAir" (aerial = true):  single slash used while airborne (spin slash)
 #                                 or dashing (dash slash). Runs alongside the
@@ -12,11 +12,11 @@ extends Movement
 # moves (ZAfterimage), hit-stop + impact spark when a hit lands (ZHitStop,
 # ZSaberSpark), and a forgiving input buffer for chaining the combo.
 
-const Hitbox = preload("res://src/Actors/Player/Zero/ZSaberHitbox.gd")
-const Slash = preload("res://src/Actors/Player/Zero/ZSaberSlash.gd")
-const Afterimage = preload("res://src/Actors/Player/Zero/ZAfterimage.gd")
-const Spark = preload("res://src/Actors/Player/Zero/ZSaberSpark.gd")
-const HitStop = preload("res://src/Actors/Player/Zero/ZHitStop.gd")
+const Hitbox = preload("res://src/Actors/Player/Zeno/ZSaberHitbox.gd")
+const Slash = preload("res://src/Actors/Player/Zeno/ZSaberSlash.gd")
+const Afterimage = preload("res://src/Actors/Player/Zeno/ZAfterimage.gd")
+const Spark = preload("res://src/Actors/Player/Zeno/ZSaberSpark.gd")
+const HitStop = preload("res://src/Actors/Player/Zeno/ZHitStop.gd")
 const LIGHT_SOUND = preload("res://src/Sounds/CopySigma - ClassicSaber.wav")
 const HEAVY_SOUND = preload("res://src/Sounds/CopySigma - HighSlash.wav")
 
@@ -25,10 +25,10 @@ const HEAVY_SOUND = preload("res://src/Sounds/CopySigma - HighSlash.wav")
 # next_at:   earliest moment a buffered press continues the combo
 # arc/radius/thick/squash/tilt/echo/sweep: shape and speed of the slash trail
 # ghosts:    leave afterimages during this swing
-# anim:      X animation used while Zero has no sprites of his own
-# zero_anim: animation used instead when zero_sprites/ provides it; its hit
-#            frame can be set in zero_sprites/zero.cfg (hit_frame_<name>)
-# Reach: each hitbox (offset ± extents, in pixels in front of Zero) is sized to
+# anim:      X animation used while Zeno has no sprites of its own
+# zeno_anim: animation used instead when zeno_sprites/ provides it; its hit
+#            frame can be set in zeno_sprites/zeno.cfg (hit_frame_<name>)
+# Reach: each hitbox (offset ± extents, in pixels in front of Zeno) is sized to
 # cover the drawn arc, so what you see is what hits.
 const GROUND_COMBO = [
 	{"duration": 0.26, "hit_delay": 0.03, "hit_time": 0.09, "next_at": 0.10,
@@ -36,19 +36,19 @@ const GROUND_COMBO = [
 	 "arc": [-70.0, 45.0], "radius": 38.0, "thick": 10.0,
 	 "squash": 0.75, "tilt": 0.0, "sweep": 0.07,
 	 "extents": Vector2(22, 22), "offset": Vector2(24, -8),
-	 "anim": "shot", "zero_anim": "saber_1", "lunge": 30.0, "heavy": false, "ghosts": false},
+	 "anim": "shot", "zeno_anim": "saber_1", "lunge": 30.0, "heavy": false, "ghosts": false},
 	{"duration": 0.26, "hit_delay": 0.03, "hit_time": 0.09, "next_at": 0.10,
 	 "damage": 3.0, "boss": 2.0, "weak": 3.0,
 	 "arc": [55.0, -75.0], "radius": 37.0, "thick": 10.0,
 	 "squash": 0.6, "tilt": -12.0, "sweep": 0.07,
 	 "extents": Vector2(22, 22), "offset": Vector2(24, -8),
-	 "anim": "shot_strong", "zero_anim": "saber_2", "lunge": 30.0, "heavy": false, "ghosts": false},
+	 "anim": "shot_strong", "zeno_anim": "saber_2", "lunge": 30.0, "heavy": false, "ghosts": false},
 	{"duration": 0.40, "hit_delay": 0.05, "hit_time": 0.12, "next_at": 1.0,
 	 "damage": 5.0, "boss": 4.0, "weak": 6.0,
 	 "arc": [-120.0, 80.0], "radius": 46.0, "thick": 13.0,
 	 "squash": 1.0, "tilt": 0.0, "echo": true, "sweep": 0.09, "fade": 0.18,
 	 "extents": Vector2(30, 30), "offset": Vector2(24, -10),
-	 "anim": "counter", "zero_anim": "saber_3", "lunge": 70.0, "heavy": true, "ghosts": true},
+	 "anim": "counter", "zeno_anim": "saber_3", "lunge": 70.0, "heavy": true, "ghosts": true},
 ]
 
 const AIR_SLASH = {"duration": 0.30, "hit_delay": 0.02, "hit_time": 0.14,
@@ -56,14 +56,14 @@ const AIR_SLASH = {"duration": 0.30, "hit_delay": 0.02, "hit_time": 0.14,
 	 "arc": [-160.0, 170.0], "radius": 38.0, "thick": 11.0,
 	 "squash": 0.9, "tilt": 0.0, "sweep": 0.14, "fade": 0.12,
 	 "extents": Vector2(40, 36), "offset": Vector2(4, -6),
-	 "anim": "", "zero_anim": "saber_air", "heavy": false, "ghosts": true}
+	 "anim": "", "zeno_anim": "saber_air", "heavy": false, "ghosts": true}
 
 const DASH_SLASH = {"duration": 0.28, "hit_delay": 0.02, "hit_time": 0.12,
 	 "damage": 4.0, "boss": 3.0, "weak": 4.0,
 	 "arc": [-115.0, 40.0], "radius": 50.0, "thick": 12.0,
 	 "squash": 0.4, "tilt": 0.0, "sweep": 0.07, "fade": 0.16,
 	 "extents": Vector2(34, 18), "offset": Vector2(30, -4),
-	 "anim": "", "zero_anim": "saber_dash", "heavy": true, "ghosts": true}
+	 "anim": "", "zeno_anim": "saber_dash", "heavy": true, "ghosts": true}
 
 const GHOST_INTERVAL := 0.035
 const GHOST_COLOR := Color(1.0, 0.3, 0.25, 0.55)
@@ -148,23 +148,23 @@ func start_swing() -> void:
 	if show_trail():
 		spawn_slash_effect()
 
-# Zero's own saber animation when his sprites provide it, else X's stand-in.
+# Zeno's own saber animation when its sprites provide it, else X's stand-in.
 func swing_animation() -> String:
-	if character.zero_custom_sprites and character.animatedSprite.frames.has_animation(current.zero_anim):
-		return current.zero_anim
+	if character.zeno_custom_sprites and character.animatedSprite.frames.has_animation(current.zeno_anim):
+		return current.zeno_anim
 	return current.anim
 
-# With custom sprites, zero.cfg can pin the hit to a frame of the animation.
+# With custom sprites, zeno.cfg can pin the hit to a frame of the animation.
 func get_hit_delay(anim: String) -> float:
-	if anim != "" and character.zero_custom_sprites:
-		var hit_frame = character.zero_config.get_value("saber", "hit_frame_" + anim, null)
+	if anim != "" and character.zeno_custom_sprites:
+		var hit_frame = character.zeno_config.get_value("saber", "hit_frame_" + anim, null)
 		var fps: float = character.animatedSprite.frames.get_animation_speed(anim)
 		if hit_frame != null and fps > 0.0:
 			return float(hit_frame) / fps
 	return current.hit_delay
 
 func show_trail() -> bool:
-	return character.zero_config.get_value("saber", "procedural_trail", true)
+	return character.zeno_config.get_value("saber", "procedural_trail", true)
 
 # Movement abilities only pick their animation when they start, so after an
 # aerial slash put back the one that fits the current state.

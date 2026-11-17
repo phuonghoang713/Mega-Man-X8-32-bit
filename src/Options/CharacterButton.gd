@@ -1,6 +1,6 @@
 extends X8OptionButton
 
-# Chooses the playable character (X or Zero). Read by Player.gd when a stage
+# Chooses the playable character (X or Zeno). Read by Player.gd when a stage
 # loads, so changing it mid-stage takes effect on the next stage.
 
 func _ready() -> void:
@@ -16,17 +16,17 @@ func decrease_value() -> void: #override
 	toggle()
 
 func toggle() -> void:
-	if is_zero():
+	if is_zeno():
 		Configurations.set("CHARACTER", "X")
 	else:
-		Configurations.set("CHARACTER", "ZERO")
+		Configurations.set("CHARACTER", "ZENO")
 	display()
 
-func is_zero() -> bool:
-	return Configurations.get("CHARACTER") == "ZERO"
+func is_zeno() -> bool:
+	return Configurations.get("CHARACTER") == "ZENO"
 
 func display():
-	if is_zero():
-		display_value("ZERO_VALUE")
+	if is_zeno():
+		display_value("ZENO_VALUE")
 	else:
 		display_value("X_VALUE")

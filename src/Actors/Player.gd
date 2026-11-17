@@ -29,13 +29,13 @@ signal at_max_hp
 
 var ride : Node2D
 
-# --- Zero (selectable character) ---
-const ZSaber = preload("res://src/Actors/Player/Zero/ZSaber.gd")
-const ZeroSprites = preload("res://src/Actors/Player/Zero/ZeroSprites.gd")
-# Placeholder palette, used only while no custom Zero sprites are present:
+# --- Zeno (selectable character) ---
+const ZSaber = preload("res://src/Actors/Player/Zeno/ZSaber.gd")
+const ZenoSprites = preload("res://src/Actors/Player/Zeno/ZenoSprites.gd")
+# Placeholder palette, used only while no custom Zeno sprites are present:
 # X's blue armor slots recolored red, light-blue slots gold.
 # Order matches MainColor1..6 in Player_Material_Shader.tres.
-const ZERO_COLORS = [
+const ZENO_COLORS = [
 	Color(0.909804, 0.188235, 0.188235, 1), # main armor
 	Color(0.752941, 0.0627451, 0.12549, 1), # main armor shade
 	Color(0.376471, 0.0313726, 0.0941176, 1), # dark shade
@@ -43,12 +43,12 @@ const ZERO_COLORS = [
 	Color(0.968627, 0.737255, 0.25098, 1),  # trim
 	Color(0.752941, 0.470588, 0.12549, 1),  # trim shade
 ]
-var is_zero := false
-var zero_custom_sprites := false # true when zero_sprites/zero.json was loaded
-var zero_config: ConfigFile = ConfigFile.new() # zero_sprites/zero.cfg (optional)
+var is_zeno := false
+var zeno_custom_sprites := false # true when zeno_sprites/zeno.json was loaded
+var zeno_config: ConfigFile = ConfigFile.new() # zeno_sprites/zeno.cfg (optional)
 
-func zero_selected() -> bool:
-	return Configurations.get("CHARACTER") == "ZERO"
+func zeno_selected() -> bool:
+	return Configurations.get("CHARACTER") == "ZENO"
 
 func deactivate():
 	stop_listening_to_inputs()
@@ -124,8 +124,8 @@ func _ready() -> void:
 	
 	save_original_colors()
 	armor_sprites = get_armor_sprites()
-	if zero_selected():
-		become_zero()
+	if zeno_selected():
+		become_zeno()
 	GameManager.set_player(self)
 	Event.call_deferred("emit_signal","player_set")
 
@@ -249,9 +249,9 @@ func is_full_armor() -> String:
 		return "icarus"
 	return "no_armor"
 
-func become_zero() -> void:
-	is_zero = true
-	# Zero has no buster, charge shot, special weapons or weapon switching.
+func become_zeno() -> void:
+	is_zeno = true
+	# Zeno has no buster, charge shot, special weapons or weapon switching.
 	for ability_name in ["Shot", "Charge", "AltFire"]:
 		get_node(ability_name).deactivate()
 	$WeaponChanger.active = false
@@ -267,21 +267,21 @@ func become_zero() -> void:
 	add_saber("SaberAir", true, ["Death", "Damage", "Ride", "Forced", "WeaponStasis",
 			"Finish", "Intro", "Nothing"])
 
-	zero_config = ZeroSprites.load_config()
-	if not apply_zero_sprites(ZeroSprites.build(animatedSprite.frames)):
-		set_new_colors_on_shader_parameters(animatedSprite, ZERO_COLORS)
+	zeno_config = ZenoSprites.load_config()
+	if not apply_zeno_sprites(ZenoSprites.build(animatedSprite.frames)):
+		set_new_colors_on_shader_parameters(animatedSprite, ZENO_COLORS)
 
-# Swaps in Zero's own SpriteFrames (built by ZeroSprites from zero_sprites/).
+# Swaps in Zeno's own SpriteFrames (built by ZenoSprites from zeno_sprites/).
 # Returns false when there are none, so the placeholder recolor is used.
-func apply_zero_sprites(custom: Dictionary) -> bool:
+func apply_zeno_sprites(custom: Dictionary) -> bool:
 	if custom.empty():
 		return false
 	animatedSprite.frames = custom.frames
 	animatedSprite.offset = custom.offset
 	animatedSprite.play("idle")
 	for part in armor_sprites:
-		part.visible = false # X's armor overlays don't match Zero's frames
-	zero_custom_sprites = true
+		part.visible = false # X's armor overlays don't match Zeno's frames
+	zeno_custom_sprites = true
 	return true
 
 func add_saber(ability_name: String, aerial: bool, conflicts: Array) -> void:
@@ -300,8 +300,8 @@ func add_saber(ability_name: String, aerial: bool, conflicts: Array) -> void:
 	saber.connect("ability_end", self, "ability_ended")
 
 func equip_parts(collectible : String):
-	if is_zero and is_armor_part(collectible):
-		return # X's armor parts don't fit Zero; they stay saved for X.
+	if is_zeno and is_armor_part(collectible):
+		return # X's armor parts don't fit Zeno; they stay saved for X.
 	if is_armor_part(collectible):
 		add_part_to_current_armor(collectible)
 		call("equip_" + collectible + "_parts")
@@ -385,7 +385,7 @@ func save_original_colors():
 	colors.append(animatedSprite.material.get_shader_param("MainColor6"))
 
 func change_palette(new_colors, paint_armor := true):
-	if is_zero:
+	if is_zeno:
 		return # weapon palettes are X-only
 	if not animatedSprite:
 		animatedSprite = get_node("animatedSprite")
